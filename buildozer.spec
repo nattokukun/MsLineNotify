@@ -1,21 +1,15 @@
 [app]
 
 # (str) Title of your application
-#######################
-## title = (NTK) Kivy Launcher
-title = Test Input
+title = Mas LINE Notify
 
 # (str) Package name
-## package.name = un_official_launcher
-#      name - is error!
-#######################
-package.name = test_input
+package.name = mas_line_notify
 
 # (str) Package domain (needed for android/ios packaging)
-#######################
 package.domain = org.kivy
 
-# (str) Source code where the main.py live
+# (str) Source code where the main.p1.0 live
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
@@ -34,8 +28,8 @@ source.exclude_dirs = tests, bin, art
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-#######################
-version = 0.0.1
+# version = 0.1
+version = 1.0a
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -43,12 +37,14 @@ version = 0.0.1
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-### requirements = python3,kivy==master,hostpython3,android
-### requirements = python3==3.9.12,hostpython3==3.9.12,kivy,pyjnius,android
-### requirements = python3==3.8.9,hostpython3==3.8.9,kivy,pyjnius,android
-### requirements = python3==3.8.9,hostpython3==3.8.9,kivy==2.2.0,pyjnius,android
-#######################
-requirements = python3==3.8.9,hostpython3==3.8.9,kivy==2.1.0,pyjnius,android
+########################
+## requirements = python3,kivy==master,hostpython3,android
+## requirements = python3,kivy==master,sqlite3,pathlib,android,requests,bs4,urllib3,chardet,idna
+## requirements = python3,kivy,hostpython3,android
+################# https://github.com/Android-for-Python/Android-for-Python-Users#64-bit-instead-of-32-bit
+## requirements = python3,kivy==master,hostpython3,android,requests,urllib3,charset-normalizer
+requirements = python3,kivy==master,hostpython3,android,requests,urllib3,charset-normalizer==2.1.1,idna
+########################
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -58,17 +54,15 @@ requirements = python3==3.8.9,hostpython3==3.8.9,kivy==2.1.0,pyjnius,android
 #garden_requirements =
 
 # (str) Presplash of the application
-#presplash.filename = %(source.dir)s/data/presplash.png
-#######################
 presplash.filename = %(source.dir)s/data/presplash.png
 
 # (str) Icon of the application
-#######################
 icon.filename = %(source.dir)s/data/icon.png
 
 # (str) Supported orientation (one of landscape, portrait or all)
-## orientation = all
+# orientation = all NG
 orientation = portrait
+############
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
@@ -84,7 +78,6 @@ orientation = portrait
 osx.python_version = 3
 
 # Kivy version to use
-# major only ?
 osx.kivy_version = 2
 
 #
@@ -103,8 +96,9 @@ fullscreen = 0
 
 # (int) Android API to use
 
-########################
+############################
 #	android.api = 28
+# 11
 android.api = 30
 ############################
 
@@ -114,8 +108,8 @@ android.api = 30
 
 # (int) Android SDK version to use
 ############################
-#android.sdk = 20
-#android.sdk = 30
+#	android.sdk = 20
+# 11
 android.sdk = 30
 ############################
 
@@ -172,14 +166,12 @@ android.sdk = 30
 #android.gradle_dependencies = "androidx.documentfile:documentfile:1.0.1"
 #android.gradle_dependencies = "androidx.core:core:1.7.0" NG
 #android.gradle_dependencies = "androidx.core:core:1.1.0"
-
 ##############
 ## android.gradle_dependencies = "androidx.documentfile:documentfile:1.0.1","androidx.core:core:1.1.0"
 ## android.gradle_dependencies = androidx.documentfile:documentfile:1.0.1	OK
 ## android.gradle_dependencies = androidx.documentfile:documentfile:1.0.1,androidx.core:core:1.7.0		NG
 android.gradle_dependencies = androidx.documentfile:documentfile:1.0.1,androidx.core:core:1.1.0
 ##############
-
 
 android.enable_androidx = True
 
@@ -250,9 +242,10 @@ android.arch = armeabi-v7a
 #ios.codesign.release = %(ios.codesign.debug)s
 
 # (list) Permissions
+#############################################
 [app:android.permissions]
 READ_EXTERNAL_STORAGE
-## WRITE_EXTERNAL_STORAGE
+#### WRITE_EXTERNAL_STORAGE
 ACCESS_LOCATION_EXTRA_COMMANDS
 ACCESS_NETWORK_STATE
 ACCESS_NOTIFICATION_POLICY
