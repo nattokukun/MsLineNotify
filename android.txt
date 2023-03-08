@@ -1,0 +1,3 @@
+title=Mas LINE Notiry
+author=Masahiro Ida
+orientation=portrait

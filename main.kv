@@ -1,0 +1,235 @@
+# -*- coding: utf-8 -*-
+#__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
+#
+#            kivy Mas LINE Norify
+#
+#            2023-02-17 M.Ida
+#
+#__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
+
+# 参考
+# https://kivy.org/doc/stable/api-kivy.uix.textinput.html
+
+#---------------------------------------------------------------------------------
+#                    ウイジット定義
+#---------------------------------------------------------------------------------
+# CheckBox 横の Label
+<ItemLabel@Label>:
+	text_size: self.size
+	halign: 'right'
+	valign: 'middle'
+	size_hint_x: 0.8
+
+# CheckBox メッセージ選択
+<MsgCheckBox@CheckBox>:
+	group: "msg"
+	size_hint_x: 0.2
+
+# CheckBox 送信先選択
+<SendCheckBox@CheckBox>:
+	group: "send"
+	size_hint_x: 0.2
+
+# Button 境界バー
+<BorderButton@Button>:
+	size_hint_y: 0.05
+	## background_color: (0.4, 0.4, 0.4, 1)
+	background_color: (0.6, 0.6, 0.6, 1)
+
+#//////////////////////////////////////////////////////////////////////////////
+<TopScreen>
+	#--------------------------------------------------
+	#	main box
+	#--------------------------------------------------
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+        # padding: 20
+        # spacing: 20s
+        padding: root.height * 0.03
+        spacing: root.height * 0.02
+
+		#--------------------------------------------------
+		#	a1
+		#--------------------------------------------------
+    	BoxLayout:
+        	orientation: "vertical"
+            size_hint_y: 0.7
+
+			#--------------------------------------------------
+			#	b1
+			#--------------------------------------------------
+			BorderButton:
+	        Label:
+	            id:label_msg
+	            text: "xxx" + "\n\n" + "xxx"
+            	markup: True
+	            ## font_size: 32
+	            ## size_hint_y: 1.0
+	            ## size_hint_y: 0.5
+	            ## halign: 'center'
+	            ## markup: True
+            	size_hint_y: 0.1
+			#--------------------------------------------------
+			#	b2 message select
+			#--------------------------------------------------
+			BorderButton:
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.6
+
+		        Label:
+		        Label:
+		            text: "【 メッセージ選択 】"
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "帰ります"
+		            	id: msg_label_1
+		        	MsgCheckBox:
+		            	id: msg_check_box_1
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "買い物して帰ります"
+		            	id: msg_label_2
+		        	MsgCheckBox:
+		            	id: msg_check_box_2
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "鍼よって帰ります"
+		            	id: msg_label_3
+		        	MsgCheckBox:
+		            	id: msg_check_box_3
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "丸山よって帰ります"
+		            	id: msg_label_4
+		        	MsgCheckBox:
+		            	id: msg_check_box_4
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "<テスト送信です>"
+		            	id: msg_label_5
+		        	MsgCheckBox:
+		            	id: msg_check_box_5
+		        Label:
+
+			#--------------------------------------------------
+			#	b3 send select
+			#--------------------------------------------------
+			BorderButton:
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.3
+
+		        Label:
+		        Label:
+		            text: "【 送信先選択 】"
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "美枝子"
+		            	id: send_label_1
+		        	SendCheckBox:
+		            	id: send_check_box_1
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "晴香・美枝子"
+		            	id: send_label_2
+		        	SendCheckBox:
+		            	id: send_check_box_2
+		        Label:
+
+			#--------------------------------------------------
+			#	b4 dummy
+			#--------------------------------------------------
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.02
+
+            	Label:
+            		id: label_errmsg
+
+		#--------------------------------------------------
+		#	a2
+		#--------------------------------------------------
+        Button:
+    	    text: '送信'
+            size_hint_y: 0.1
+            on_press:
+                ## root.manager.transition = RiseInTransition()
+                ## root.manager.current = 'busy'
+                root.button_exec()
+		#--------------------------------------------------
+		#	a3
+		#--------------------------------------------------
+        Button:
+    	    text: '終了'
+            size_hint_y: 0.1
+			on_press: root.button_quit()
+
+		#--------------------------------------------------
+		#	a4
+		#--------------------------------------------------
+    	BoxLayout:
+        	orientation: "vertical"
+            size_hint_y: 0.1
+
+#//////////////////////////////////////////////////////////////////////////////
+<EndScreen>
+	#--------------------------------------------------
+	#	main box
+	#--------------------------------------------------
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+        # padding: 20
+        # spacing: 20s
+        padding: root.height * 0.03
+        spacing: root.height * 0.02
+
+        Label:
+            id:label_msg
+            text: "xxx Bowling" + "\n\n" + "Backup Execute?"
+            ## font_size: 32
+            size_hint_y: 0.7
+            halign: 'center'
+            markup: True
+
+        Button:
+    	    text: '再実行'　
+            size_hint_y: 0.1
+            on_press:
+                ## root.manager.transition = RiseInTransition()
+                ## root.manager.current = 'busy'
+                root.button_exec()
+        Button:
+    	    text: '終了'
+            size_hint_y: 0.1
+			on_press: root.button_quit()
+
+    	BoxLayout:
+            size_hint_y: 0.1
+#//////////////////////////////////////////////////////////////////////////////
+<BusyScreen>:
+    canvas.before:
+        Color:
+            rgba: 0, 0.4, 0, 1		#fukamidori
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            id:label_busy
+            text: "[i][b]送信中...[/i][/b]"
+            markup: True
+            halign: 'center'
+#//////////////////////////////////////////////////////////////////////////////
