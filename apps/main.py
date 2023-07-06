@@ -49,9 +49,11 @@ from _userlib.linebot import LINENotifyBot
 def line_notify(p_access_token,     # アクセストークン
                 p_msg):             # メッセージ
                                     # エラーメッセージ '':成功
+    """
     if cssys.is_windows:
      # ウインドウズではokとする
         return ''
+    """
 
     t_bot = LINENotifyBot(p_access_token)
 
@@ -181,6 +183,8 @@ class BusyScreen(Screen):
     #        スレッドにて処理実行
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     def process_exec(self):
+        cssys.debug_log('process_exec ' + self.send_msg)
+
         # to 美枝子
         ACCESS_TOKEN_TO_MAS_MIE     = 'wI2vAZjkFJmghsKS1uem1vFmxnLw3vGcHgkP1SGhNtd'
         # to 晴香・美枝子
