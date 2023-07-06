@@ -1,212 +1,255 @@
 # -*- coding: utf-8 -*-
+#__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
+#
+#            kivy Mas LINE Norify
+#
+#            2023-02-17 M.Ida
+#
+#__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/__/
 
 # 参考
 # https://kivy.org/doc/stable/api-kivy.uix.textinput.html
 
-<TestInput@TextInput_JA>:
+#---------------------------------------------------------------------------------
+#                    ウイジット定義
+#---------------------------------------------------------------------------------
+# CheckBox 横の Label
+<ItemLabel@Label>:
+	text_size: self.size
+	halign: 'right'
+	valign: 'middle'
+	size_hint_x: 0.8
 
-	##	#:import main main
-	##	#:set INPUT_H main.INPUT_H	# android では main.がエラーとなる
-	##	#:set INPUT_W main.INPUT_W
+# CheckBox メッセージ選択
+<MsgCheckBox@CheckBox>:
+	group: "msg"
+	size_hint_x: 0.2
 
-	# 定数定義
-	#:set INPUT_H 32 * 2
-	#:set INPUT_W INPUT_H * 3
+# CheckBox 送信先選択
+<SendCheckBox@CheckBox>:
+	group: "send"
+	size_hint_x: 0.2
 
-    multiline: False
+# Button 境界バー
+<BorderButton@Button>:
+	## size_hint_y: 0.05
+	## background_color: (0.4, 0.4, 0.4, 1)
+	background_color: (0.6, 0.6, 0.6, 1)
 
-    # 位置
-    # pos_hint: {}
-    pos_hint: {"center_y": 0.95, "center_x": 0.1}
-
-	# サイズ
-    size_hint: (None, None)
-    width : INPUT_W
-    height: INPUT_H
-
-	# 文字入力
-    halign: 'right'
-    input_filter: 'int'
-
-    ## 	この定義段階では root がエラーになる
-    ## on_text_validate: root.InputEnter()
-
-<ScoreInput@TextInput_JA>:
-    multiline: False
-
-    # 位置
-    # pos_hint: {}
-    #pos_hint: {"center_y": 0.95, "center_x": 0.1}
-
-	# サイズ
-    #size_hint: (None, None)
-    #width : INPUT_W
-    #height: INPUT_H
-
-	# 文字入力
-    #  halign: 'right'
-    #  input_filter: 'int'
-
-<GameTotalLabel@Label>:
-	text: '0'
-	# 文字揃え
-    text_size: self.size
-    halign: 'right'
-
-<TitleButton@Button>
-
-<MainForm>
-	#:set GAME_CAPTION 'Game : '
-
+#//////////////////////////////////////////////////////////////////////////////
+<TopScreen>
 	#--------------------------------------------------
 	#	main box
 	#--------------------------------------------------
     BoxLayout:
         orientation: "vertical"
         size: root.width, root.height
-		# レイアウトとの周辺間隔
-        padding: 5
-        # コントロール間 縦間隔
-        spacing: 1
+        # padding: 20
+        # spacing: 20s
+        padding: root.height * 0.03
+        spacing: root.height * 0.02
 
 		#--------------------------------------------------
-		#	top button box
+		#	a1
 		#--------------------------------------------------
-        #Button:
-            # size_hint: (1, .5)
-            # font_size: 32
-        #    text: "1"
-        #    pos_hint: {"center_x": 0.5}
-        #    size_hint: (1, 0.08)
-            # width: 200
-            # height: 50
-            # on_press: root.ButtonPress()
-
     	BoxLayout:
-            # pos_hint: {"center_x": 0.5}
-            # size_hint: (1, 0.08)
-	        # size: root.width, root.height
-	        size_hint: 1, 0.08
+        	orientation: "vertical"
+            size_hint_y: 0.7
 
-        	Button:
-	            text: "button 1"
+			#--------------------------------------------------
+			#	b1
+			#--------------------------------------------------
+			BorderButton:
+				size_hint_y: 0.04
+			#--------------------------------------------------
+			#	b2
+			#--------------------------------------------------
+	        Label:
+	            id:label_msg
+	            text: "xxx" + "\n\n" + "xxx"
+            	markup: True
+	            ## font_size: 32
+	            ## size_hint_y: 1.0
+	            ## size_hint_y: 0.5
+	            ## halign: 'center'
+	            ## markup: True
+            	## size_hint_y: 0.1
+            	size_hint_y: 0.06
+			#--------------------------------------------------
+			#	b3
+			#--------------------------------------------------
+			BorderButton:
+				size_hint_y: 0.04
+			#--------------------------------------------------
+			#	b4 message select
+			#--------------------------------------------------
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.55
 
-        	Button:
-	            text: "Quit"
-	            on_press: quit()
+		        Label:
+		        Label:
+		            text: "【 メッセージ選択 】"
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "帰ります"
+		            	id: msg_label_1
+		        	MsgCheckBox:
+		            	id: msg_check_box_1
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "買い物して帰ります"
+		            	id: msg_label_2
+		        	MsgCheckBox:
+		            	id: msg_check_box_2
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "鍼よって帰ります"
+		            	id: msg_label_3
+		        	MsgCheckBox:
+		            	id: msg_check_box_3
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "丸山よって帰ります"
+		            	id: msg_label_4
+		        	MsgCheckBox:
+		            	id: msg_check_box_4
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "用事して帰ります"
+		            	id: msg_label_5
+		        	MsgCheckBox:
+		            	id: msg_check_box_5
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "<テスト送信です>"
+		            	id: msg_label_6
+		        	MsgCheckBox:
+		            	id: msg_check_box_6
+		        Label:
+
+			#--------------------------------------------------
+			#	b5
+			#--------------------------------------------------
+			BorderButton:
+				size_hint_y: 0.04
+			#--------------------------------------------------
+			#	b6 send select
+			#--------------------------------------------------
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.25
+
+		        Label:
+		        Label:
+		            text: "【 送信先選択 】"
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "美枝子"
+		            	id: send_label_1
+		        	SendCheckBox:
+		            	id: send_check_box_1
+
+	    		BoxLayout:
+					ItemLabel:
+		            	text: "晴香・美枝子"
+		            	id: send_label_2
+		        	SendCheckBox:
+		            	id: send_check_box_2
+		        Label:
+
+			#--------------------------------------------------
+			#	b7 dummy
+			#--------------------------------------------------
+    		BoxLayout:
+        		orientation: "vertical"
+            	size_hint_y: 0.02
+
+            	Label:
+            		id: label_errmsg
 
 		#--------------------------------------------------
-		#	input box
-		#--------------------------------------------------
-        # 前半(上段) game 1
-
-        #Button:
-        #    size_hint: (1, 0.5)
-
-    	BoxLayout:
-	        # orientation: "vertical"
-            # pos_hint: {"center_x": 0.5}
-            # size_hint: (1, 0.08)
-	        # size: root.width, root.height
-	        size_hint: 1, 0.5
-
-	    	BoxLayout:
-	        	orientation: "vertical"
-
-				TitleButton:
-					text: GAME_CAPTION + '1'
-
-	        	ScoreInput:
-		            id: input_1_1_1
-				    on_text_validate: root.InputEnter()
-				    on_focus: root.on_focus(self, self.focus)
-	        	ScoreInput:
-		            id: input_1_1_2
-				    on_text_validate: root.InputEnter()
-	        	ScoreInput:
-		            id: input_1_1_3
-				    on_text_validate: root.InputEnter()
-	        	ScoreInput:
-		            id: input_1_1_4
-				    on_text_validate: root.InputEnter()
-	        	ScoreInput:
-		            id: input_1_1_5
-				    on_text_validate: root.InputEnter()
-
-				GameTotalLabel:
-					id: total_1_1
-
-############
-
-	    	BoxLayout:
-	        	orientation: "vertical"
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-
-	    	BoxLayout:
-	        	orientation: "vertical"
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-
-	    	BoxLayout:
-	        	orientation: "vertical"
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-	        	Button:
-
-        # 後半(下段)
-        #Button:
-            # size_hint: (1, .5)
-            # font_size: 32
-            # text: "2"
-            # pos_hint: {"center_x": 0.2}
-        #    size_hint: (1, 0.5)
-            # width: 200
-            # height: 50
-        	# on_press: root.ButtonPress()
-
-    	BoxLayout:
-	        # orientation: "vertical"
-            # pos_hint: {"center_x": 0.5}
-            # size_hint: (1, 0.08)
-	        # size: root.width, root.height
-	        size_hint: 1, 0.5
-
-	        Button:
-	        Button:
-	        Button:
-	        Button:
-
-
-
-
-
-
-
-
-		#--------------------------------------------------
-		#	under dummy area
+		#	a2
 		#--------------------------------------------------
         Button:
-        	id : button_under
-            # size_hint: (1, .5)
-            # font_size: 32
-            text: "Under Dummy Area"
-            pos_hint: {"center_x": 0.5}
-            size_hint: (1, 0.4)
-            # size_hint: (None, None)
-            # width: 200
-            # height: 50
-            # on_press: root.ButtonTestPress()
+    	    text: '送信'
+            size_hint_y: 0.1
+            on_press:
+                ## root.manager.transition = RiseInTransition()
+                ## root.manager.current = 'busy'
+                root.button_exec()
+		#--------------------------------------------------
+		#	a3
+		#--------------------------------------------------
+        Button:
+    	    text: '終了'
+            size_hint_y: 0.1
+			on_press: root.button_quit()
 
+		#--------------------------------------------------
+		#	a4
+		#--------------------------------------------------
+    	BoxLayout:
+        	orientation: "vertical"
+            size_hint_y: 0.1
+
+#//////////////////////////////////////////////////////////////////////////////
+<EndScreen>
+	#--------------------------------------------------
+	#	main box
+	#--------------------------------------------------
+    BoxLayout:
+        orientation: "vertical"
+        size: root.width, root.height
+        # padding: 20
+        # spacing: 20s
+        padding: root.height * 0.03
+        spacing: root.height * 0.02
+
+        Label:
+            id:label_msg
+            text: "xxx Bowling" + "\n\n" + "Backup Execute?"
+            ## font_size: 32
+            size_hint_y: 0.7
+            halign: 'center'
+            markup: True
+
+        Button:
+    	    text: '再実行'　
+            size_hint_y: 0.1
+            on_press:
+                ## root.manager.transition = RiseInTransition()
+                ## root.manager.current = 'busy'
+                root.button_exec()
+        Button:
+    	    text: '終了'
+            size_hint_y: 0.1
+			on_press: root.button_quit()
+
+    	BoxLayout:
+            size_hint_y: 0.1
+#//////////////////////////////////////////////////////////////////////////////
+<BusyScreen>:
+    canvas.before:
+        Color:
+            rgba: 0, 0.4, 0, 1		#fukamidori
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            id:label_busy
+            text: "[i][b]送信中...[/i][/b]"
+            markup: True
+            halign: 'center'
+#//////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,61 @@
+# -*- coding: utf-8 -*-
+#//////////////////////////////////////////////////////////////////////////////
+#            common.kv Common kv file
+#            M.Ida 2023.07.05
+#//////////////////////////////////////////////////////////////////////////////
+
+# kv
+# 参照：https://pyky.github.io/kivy-doc-ja/guide/lang.html
+#
+#	テンプレート -> 定義
+#	ids より ObjectProperty の方が高速
+
+#--------------------------------------------------
+#	水平ライン 定義
+#--------------------------------------------------
+<HorLine@TextInput>:
+	readonly: True
+	## readonly は以下が無いと "select all"のメッセージが消えない
+	use_bubble: False
+	use_handles: False
+    # 色
+    #                 active                       not actiive
+    #                  薄い灰色								 　　(非アクティブ・OK色)
+    ##				   192   192   192
+    background_color: (0.75, 0.75, 0.75, 1) if self.focus else (0.75, 0.75, 0.75, 1)
+
+#--------------------------------------------------
+#	数値入力 定義
+#--------------------------------------------------
+<IntInput@TextInput>:
+    multiline: False
+
+	# 文字入力
+    halign: 'right'
+    input_filter: 'int'
+    input_type: 'number'	# 数字キー
+
+    on_text_validate: app.root.current_screen.input_control.on_input_enter()
+    on_focus: if app.root != None: app.root.current_screen.input_control.on_input_focus(self, self.focus)
+
+#--------------------------------------------------
+#	文字列入力 定義
+#--------------------------------------------------
+<StrInput@TextInput_JA>:
+    multiline: False
+
+	# 文字入力
+    # halign: 'right'
+    # input_filter: 'int'
+    # input_type: 'text'	# 文字キー
+
+    on_text_validate: app.root.current_screen.input_control.on_input_enter()
+    on_focus: if app.root != None: app.root.current_screen.input_control.on_input_focus(self, self.focus)
+
+#--------------------------------------------------
+#	グループコンテキストメニュー 定義
+#--------------------------------------------------
+<GroupMenu@ContextMenu>:
+	visible: False
+
+##

@@ -1,0 +1,298 @@
+# -*- coding: utf-8 -*-
+#//////////////////////////////////////////////////////////////////////////////
+#            datamainte.kv for Data Maintenance
+#            M.Ida 2023.07.05
+#//////////////////////////////////////////////////////////////////////////////
+
+#:include _userlib/common.kv
+
+#########################################################################
+##--------------------------------------------------
+##	メニューバー
+##--------------------------------------------------
+#<MenuActionBar@ActionBar>:
+#	orientation: "vertical"
+#
+#	ActionView:
+#
+#		ActionPrevious:
+#			title: app.title        # 'app name'
+#			with_previous: False    # trueだと頭のロゴがボタンになる？
+#			# on_press: print('aaa')
+#
+#		## ActionButton:
+#			## text: 'sw'
+#			## on_press: print("push ");app.root.change_calc2()
+#
+#		ActionGroup:    # ボタンをグループ化する
+#			text: '     外部データ     '
+#			mode: 'spinner'
+#			## dropdown_width: 0.5
+#
+#		ActionButton:
+#			text: '外部から取込む'
+#			### on_press: app.root.current_screen.data_mainte.import_data()
+#
+#		ActionButton:
+#			text: '外部に出力'
+#			on_press: app.root.current_screen.data_mainte.export_data()
+#
+#		ActionGroup:    # ボタンをグループ化する
+#			text: '       ファイル      '
+#			mode: 'spinner'
+#			## dropdown_width: 0.5
+#
+#			ActionButton:
+#				text: '読込ログ確認'
+#				on_press: app.root.current_screen.data_mainte.confirm_load_log()
+#
+#			ActionButton:
+#				text: '選択読込'
+#				on_press: app.root.current_screen.data_mainte.select_to_load()
+#
+#			ActionButton:
+#				text: '保存'
+#				on_press: app.root.current_screen.data_mainte.save()
+#
+#			ActionButton:
+#				text: '破棄'
+#				on_press: app.root.current_screen.data_mainte.disposal()
+#
+#			ActionButton:
+#				text: '終了'
+#				## on_press: quit()
+#				on_press: app.root.current_screen.data_mainte.quit()
+#########################################################################
+
+#########################################################################
+#--------------------------------------------------
+#	一覧表 項目　定義
+#--------------------------------------------------
+#<CellMark@Button>:
+#	size_hint_x: 3
+#	on_press: app.root.current_screen.data_mainte.put_by_mark(app.root.current_screen, self)
+#
+#<CellCode@TextInput>:
+#    text: ''
+#	size_hint_x: 10
+#	halign: 'right'
+#	readonly: True
+#	## readonly は以下が無いと "select all"のメッセージが消えない
+#	use_bubble: False
+#	use_handles: False
+#
+#<CellName@TextInput>:
+#    text: ''
+#	size_hint_x: 50
+#	halign: 'left'
+#	readonly: True
+#	## readonly は以下が無いと "select all"のメッセージが消えない
+#	use_bubble: False
+#	use_handles: False
+#########################################################################
+
+#--------------------------------------------------
+#	キャプション ＆ メニュー　ボックス
+#--------------------------------------------------
+<CaptionBox@BoxLayout>:
+    Label:
+    	id: label_title		##
+        size_hint: 0.63,1
+		### text: 'Test Data Mainte'
+
+	Spinner
+		id: menu_spinner	##
+        size_hint: 0.245,1
+	    ### text: 'Home'
+	    ### values: ('Home', 'Work', 'Other', 'Custom')
+
+	Button:
+        size_hint: 0.125,1
+    	on_release: app.root.current_screen.data_mainte.popup_menu()
+
+        Image:
+		    source: app.image_path("hamburger-menu-icon_full_1-2.png")
+			## fit_mode: "scale-down"	# 上手く行かないので直接サイズ指定
+			pos: self.parent.pos
+    		size: self.parent.width, self.parent.height
+
+#--------------------------------------------------
+#	保守ボタン ボックス
+#--------------------------------------------------
+<MainteButtonBox@BoxLayout>:
+    # pos_hint: {"center_x": 0.5}
+    # size: root.width, root.height
+
+	Button:
+        text: "先頭"
+		on_press: app.root.current_screen.data_mainte.put_top(True)
+	Button:
+        text: "前行"
+		on_press: app.root.current_screen.data_mainte.put_prev(True)
+	Button:
+        text: "次行"
+		on_press: app.root.current_screen.data_mainte.put_next(True)
+	Button:
+        text: "最終"
+		on_press: app.root.current_screen.data_mainte.put_bottom(True)
+	Button:
+        text: "追加"
+		on_press: app.root.current_screen.data_mainte.add_begin()
+	Button:
+        text: "更新"
+		on_press: app.root.current_screen.data_mainte.update()
+	Button:
+        text: "削除"
+		on_press: app.root.current_screen.data_mainte.delete()
+	Button:
+        text: "取消"
+        ## on_press: quit()
+		on_press: app.root.current_screen.data_mainte.cancel()
+
+#--------------------------------------------------
+#	メッセージ　ボックス
+#--------------------------------------------------
+<MessageBox@BoxLayout>:
+	Label:
+		size_hint: 1, 1
+		## text: 'xxx'
+		id : label_msg		##
+
+#--------------------------------------------------
+#	絞込 ボックス
+#--------------------------------------------------
+<FilterBox@BoxLayout>:
+	orientation: "vertical"
+	# レイアウトとの周辺間隔
+    ## padding: 5
+    # コントロール間 縦間隔
+    spacing: 5
+
+	# 水平ライン c1
+	HorLine:
+		size_hint: 1, 0.15
+
+	# 絞込氏名 c2
+	BoxLayout:
+		size_hint: 1, 0.7
+
+		Label:
+			size_hint: 0.1, 1
+		Label:
+			size_hint: 0.2, 1
+			text: "絞込文字"
+		StrInput:
+			size_hint: 0.5, 1
+			id : input_filter		##
+		CheckBox:
+			group: 'radio'
+			id : checkbox_filter	##
+			size_hint: 0.1, 1
+		Label:
+			size_hint: 0.1, 1
+
+	# 下部余白 c3
+	Label:
+		size_hint: 1, 0.05
+
+#--------------------------------------------------
+#	頁　ボックス
+#--------------------------------------------------
+<PageBox@BoxLayout>:
+	orientation: "vertical"
+
+    canvas.before:
+        Color:
+            rgba: (0.55, 0.55, 0.55, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+	# 上部余白 c1
+	Label:
+		size_hint: 1, 0.1
+
+	# 頁 c2
+	BoxLayout:
+		size_hint: 1, 0.9
+
+		Label:
+			size_hint: 0.3, 1
+		IntInput:
+			size_hint: 0.2, 1
+			id : input_page_now		##
+		Label:
+			size_hint: 0.3, 1
+			text_size: self.size
+			halign: 'left'
+			valign: 'middle'
+			id : label_page_all		##
+		Label:
+			size_hint: 0.2, 1
+
+	# 下部余白 c3
+	Label:
+		size_hint: 1, 0.1
+
+#--------------------------------------------------
+#	一覧エリア　ボタン　ボックス
+#--------------------------------------------------
+<ListButtonBox@BoxLayout>:
+	Button:
+        text: "先頭頁"
+    	size_hint: 0.2, 1
+		on_press: app.root.current_screen.data_mainte.put_list_top()
+	Button:
+        text: "前頁"
+    	size_hint: 0.2, 1
+		on_press: app.root.current_screen.data_mainte.put_list_prev()
+	Button:
+        text: "↓"
+    	size_hint: 0.2, 1
+		on_press: app.root.current_screen.data_mainte.put_list_current()
+	Button:
+        text: "次頁"
+    	size_hint: 0.2, 1
+		on_press: app.root.current_screen.data_mainte.put_list_next()
+	Button:
+        text: "最終頁"
+    	size_hint: 0.2, 1
+		on_press: app.root.current_screen.data_mainte.put_list_bottom()
+
+#--------------------------------------------------
+#	一覧エリア　明細　ボックス
+#--------------------------------------------------
+<ListBox@BoxLayout>:
+	GridLayout:
+		id: list_grid		##
+	    ## rows: 10
+	    ## cols: 3
+
+#--------------------------------------------------
+#	ポップアップメニューのためのダミーエリア
+#		最前面に表示するために最後に定義
+#--------------------------------------------------
+<PopupMenuBox@BoxLayout>:
+	# 以下は動的に変更
+	size_hint: 0.0001, 0.0001	# 殆ど見えなくする
+
+	FloatLayout:
+		id: popup_menu_float
+
+		ContextMenu:
+			### これが child にならない! popup_menu_float と同列！
+			id: context_menu		##
+			## cancel_handler_widget: main_screen
+			cancel_handler_widget: popup_menu_float
+
+		##ContextMenu:
+		##	id: context_menu_2
+		##	## cancel_handler_widget: main_screen
+		##	cancel_handler_widget: popup_menu_float
+
+			## 以下は動的に作成
+		    ## ContextMenuTextItem:
+		    ##     text: "実行"
+    		## 	   on_release: app.root.current_screen.data_mainte.release_menu(self.text)
+
+##

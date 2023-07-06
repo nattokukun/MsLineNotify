@@ -6,7 +6,7 @@
 # Debug 用
 from kivy.logger import Logger
 from kivy.config import Config
-from pickle import TRUE
+## from pickle import TRUE
 ## from pickle import FALSE, TRUE
 
 # ログ設定
@@ -24,12 +24,21 @@ import os
 #                   関数群
 #------------------------------------------------------------------------------
 # デバッグログ
-def debug_log(p_msg):
+def debug_log(p_msg,            # メッセージテキスト
+              p_crlf=False):    # False:CRLFを潰す
     t_msg = p_msg .replace(':', '$')
-    t_msg = t_msg.replace('\n', ' ')
-    Logger.debug('### ' + t_msg)
+    if not p_crlf:
+        t_msg = t_msg.replace('\n', ' ')
+    else:
+        t_msg = t_msg.replace('\n', '\n#R#- ')
+    ## Logger.debug('### ' + t_msg)
+    Logger.debug('#R# ' + t_msg)
 
-debug_log('************** Logger debug start *************')
+debug_log('')
+debug_log('')
+debug_log('***********************************************')
+debug_log('*****          Logger debug start         *****')
+debug_log('***********************************************')
 
 # Windowsであるか
 def is_windows():
@@ -79,8 +88,11 @@ if is_android():
         from android import mActivity, activity
         Activity = autoclass('android.app.Activity')
         Context  = autoclass('android.content.Context')
+        Settings = autoclass('android.provider.Settings')
         Intent   = autoclass('android.content.Intent')
         File     = autoclass('java.io.File')
+        PackageManager = autoclass('android.content.pm.PackageManager')
+        Environment    = autoclass('android.os.Environment')
         """
         java.lang.Object
             java.io.Writer
@@ -118,8 +130,8 @@ if is_android():
     ANDROID_11 = 30
 
 # 要求コードは任意でユニーク
-REQUEST_ACCESS_STORAGE = 101
-
+REQUEST_ACCESS_STORAGE      = 101
+REQUEST_ALL_FILE_PERMISSION = 105
 
 #------------------------------------------------------------------------------
 #                   関数・クラス群
@@ -154,8 +166,8 @@ def adjust_opengl(p_python_ver,                     # pythonバージョンNo
 
 # 外部ストレージパス(実際は内部ストレージパス)を得る
 def adr_get_external_storage_dir():    # 外部ストレージパス
-    t_environment = autoclass('android.os.Environment')
-    t_dir = t_environment.getExternalStorageDirectory()
+    ## Environment = autoclass('android.os.Environment')
+    t_dir = Environment.getExternalStorageDirectory()
     # print('******')
     t_str = t_dir.getAbsolutePath()
     # print(t_str)
@@ -268,8 +280,66 @@ def test_adr_storage():
     return
 
 # callback 処理クラス
-# Android 7～9
-class RequestAccessCallback_7_9:
+# phase1 Android
+class RequestAccessCallback_P1:
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #            コンストラクタ
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    def __init__(self, p_request_code):
+        self.wait_request_code = p_request_code
+        self.result = None
+
+        # 発行のコールバックをセット
+        # スレッドの重複はクラスが見つけられない場合有り
+        # https://issuehint.com/issue/kivy/python-for-android/2533
+        debug_log('bind start')
+        ## from android import mActivity, activity
+        activity.bind(on_activity_result = self._on_activity_result)
+        debug_log('bind end')
+
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    #           callbackハンドラ
+    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    def _on_activity_result(self, p_request_code, p_result_code, p_intent):
+        debug_log('on_activity_result start')
+        t_end = False
+        if p_request_code == self.wait_request_code:
+        # 当該リクエスト
+            ## Activity = autoclass('android.app.Activity')
+            if p_result_code  == Activity.RESULT_OK:
+                # 許可を保存
+                """
+                t_uri = p_intent.getData()
+                t_resolver = mActivity.getContentResolver()
+                t_resolver.takePersistableUriPermission(t_uri,
+                                                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                                                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                """
+                # 許可
+                debug_log('on_activity_result ok!')
+                t_result = True
+            else:
+                # 拒否処理
+                debug_log('on_activity_result cancel!')
+                t_result = False
+
+            t_end = True
+        else:
+            debug_log('on_activity_result not request')
+
+        if t_end:
+            # バインド解除
+            debug_log('on_activity_result unbind')
+            ## from android import mActivity, activity
+            activity.unbind(on_activity_result=self._on_activity_result)
+
+        if t_end:
+            self.result = t_result
+        debug_log('on_activity_result return')
+
+# callback 処理クラス
+# phase2 Android 7～9
+class RequestAccessCallback_P2_7_9:
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #            コンストラクタ
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -327,8 +397,8 @@ class RequestAccessCallback_7_9:
         debug_log('on_activity_result return')
 
 # callback 処理クラス
-# Android 10～11
-class RequestAccessCallback_10_11:
+# phase2 Android 10～11
+class RequestAccessCallback_P2_10_11:
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #            コンストラクタ
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -381,8 +451,13 @@ class RequestAccessCallback_10_11:
             self.result = t_result
         debug_log('on_activity_result return')
 
-
 # uri から DocumentFile を得る
+#    ・本ルーチンのSDと言う表現が怪しい 半理解のままの作成なので不完全
+#    ・pathなどから作成したuriだと、本ルーチンのリターン Docでエラーが出る
+#     この場合 1) 完全なuriから 本ルーチンにて docを作成 (1)
+#            2) (1)のdocにて findFileで docを取得 (2)
+#            3) (2)のdocが Noneの場合は不存在なので、
+#               createFile or createDirectory で docを得る
 def uri_to_doc(p_uri):
                                 # :DocumentFile =None:エラー
     ROUTIN = 'uri_to_doc : '
@@ -395,27 +470,24 @@ def uri_to_doc(p_uri):
         debug_log('uri_to_doc : This is not SD')
     """
     if not t_sd_fuu:
+    # SD以外
         t_file = File(p_uri.getPath())
         t_doc = DocumentFile.fromFile(t_file)
     else:
+    # SD
         if p_uri.getScheme() == 'file':
-        # SDなのに file の場合は、未対応とする
-            """
-            # 変換する.. 以下上手くいかない
-            t_File = File(p_uri.getPath())
-            t_context = Context.getApplicationContext()
-            t_uri = FileProvider.getUriForFile(mActivity, \
-                                                t_context.getPackageName() + ".provider", \
-                                                t_File)
-            p_uri = t_uri
-            """
+            ###
+            """ 2023/05/24 これで上手く行く場合があったので
             t_doc = None
-            raise Exception(ROUTIN + 'this uri not supported!' + p_uri.getPath())
+            raise Exception(ROUTIN + 'file is please exec findFile() or createFile() ' + p_uri.getPath())
+            """
+            t_file = File(p_uri.getPath())
+            t_doc = DocumentFile.fromFile(t_file)
+            ###
         else:
         # context
             ## t_file = File(p_uri.getPath())
             t_doc = DocumentFile.fromTreeUri(mActivity, p_uri)
-    pass
     return t_doc
 
 # ディレクトリアクセス権要求するintent生成
@@ -458,12 +530,12 @@ def get_sd_uri():
             """ 7-9 NG
             t_file = t_volume.getDirectory()
             t_uri = Uri.fromFile(t_file)
-            #####################
+            ###
             上記は NG でああるが、ここに入ってくれば SDは存在するのは分かる
-            #####################
+            ###
             """
             android_version = AndroidVersion()
-            if android_version.is_10_11:
+            if android_version.more_than_10:
                 t_file = t_volume.getDirectory()
                 t_uri = Uri.fromFile(t_file)
             else:
@@ -483,20 +555,38 @@ def get_sd_uri():
     return t_uri
 
 # ストレージアクセス許可を得る
-def request_access_storage():
+def request_access_storage(p_necessary_path_in_adrd_data):
+                                            # android/data 配下のアクセスが必要な場合
+                                            # 例えば 'jp.co.wasabiapps.bestbowling'
                                         # True:許可(Win:True)
-                                        # SDカードuri(Android 7～9)
+                                        # SDカードuri
     t_sd_uri = None
     if is_android():
+
+    # phase 1
+        if request_access_storage_p1():
+            # SDカード uriを得る
+            t_sd_uri = get_sd_uri()
+            t_access_ok = True
+        else:
+            ## self.end_result('Please rerun this program !' + '\n' +
+            ##                '(permission error!)', False)
+            ##return
+            t_access_ok = False
+            return t_access_ok, t_sd_uri
+
+    # phase 2
         t_adr_ver = AndroidVersion()
-        if t_adr_ver.is_10_11:
+        if t_adr_ver.more_than_10:
         # Android 10 以上
         # SDカードは許可されているが、Android/data 内が読めない
-            t_access_ok = request_access_storage_10_11()
+            t_access_ok = request_access_storage_p2_10_11(p_necessary_path_in_adrd_data)
+            # SDカード uriを得る
+            t_sd_uri = get_sd_uri()
         else:
         # Android 10 未満
         # SDカードの許可が必要
-            t_access_ok, t_sd_uri = request_access_storage_7_9()
+            t_access_ok, t_sd_uri = request_access_storage_p2_7_9()
         """
         if not t_access_ok:
             raise Exception('request_access_storage　: Access Error!')
@@ -509,8 +599,91 @@ def request_access_storage():
     return t_access_ok, t_sd_uri
 
 # ストレージアクセス許可を得る
-# Android 7～9
-def request_access_storage_7_9():
+# phase1 Android
+def request_access_storage_p1():
+    ## RequestAllFilesAccessPermission
+    """
+    from jnius   import autoclass
+    from android import mActivity, activity
+    VERSION  = autoclass('android.os.Build$VERSION')
+    if VERSION.SDK_INT >= 30:
+    """
+    t_adr_ver = AndroidVersion()
+    if t_adr_ver.more_than_11:
+    # android 11 以上
+        ## Context  = autoclass('android.content.Context')
+        ## PackageManager  = autoclass('android.content.pm.PackageManager')
+        t_pname       = mActivity.getPackageName()
+        debug_log('packageName ==== ' + t_pname)
+
+        t_pm = mActivity.getPackageManager()
+        ## t_packageInfo = PackageManager.getPackageInfo(t_pname, 0)
+        t_packageInfo = t_pm.getPackageInfo(t_pname, 0)
+
+        t_packageName = t_packageInfo.packageName
+        ## Environment = autoclass('android.os.Environment')
+        t_ok = Environment.isExternalStorageManager()
+        if t_ok:
+            debug_log('isExternalStorageManager ok!')
+            return True
+
+        debug_log('isExternalStorageManager No!')
+
+        ## Settings = autoclass('android.provider.Settings')
+        ## Intent   = autoclass('android.content.Intent')
+        ## Uri      = autoclass('android.net.Uri')
+        try:
+            # intent 発行
+            t_intent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+            t_intent.addCategory("android.intent.category.DEFAULT")
+            t_intent.setData(Uri.parse("package:" + t_packageName))
+
+            # コールバッククラスインスタンス作成 & コールバックをセット
+            t_request_access = RequestAccessCallback_P1(REQUEST_ALL_FILE_PERMISSION)
+
+            # intent 発行
+            debug_log('startActivityForResult 1')
+            mActivity.startActivityForResult(t_intent, REQUEST_ALL_FILE_PERMISSION)
+        except:
+            t_intent = Intent()
+            t_intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+
+            # コールバッククラスインスタンス作成 & コールバックをセット
+            t_request_access = RequestAccessCallback_P1(REQUEST_ALL_FILE_PERMISSION)
+
+            # intent 発行
+            debug_log('startActivityForResult 2')
+            mActivity.startActivityForResult(t_intent, REQUEST_ALL_FILE_PERMISSION)
+
+
+        # 許可の応答を待つ
+        debug_log('request_access wait start')
+        t_ok = False
+        while True:
+            if t_request_access.result != None:
+            # 結果が入った
+                if t_request_access.result:
+                # 許可
+                    t_ok  = True
+                break
+            else:
+                # wait
+                pass
+        debug_log('request_access wait end')
+        return t_ok
+    else:
+    # android 11 未満
+        ###
+        # テストしていない
+        ###
+        debug_log(' ### not tested .. request_permissions less than android 10')
+        # 複数権限を得る
+        t_ok = adr_check_request_permissions([Permission.WRITE_EXTERNAL_STORAGE]);
+        return t_ok
+
+# ストレージアクセス許可を得る
+# phase2 Android 7～9
+def request_access_storage_p2_7_9():
                                         # True:許可
                                         # SDカードuri
 
@@ -587,7 +760,7 @@ def request_access_storage_7_9():
             t_intent = create_open_doctree_intent(t_volume)
 
             # コールバッククラスインスタンス作成
-            t_request_access = RequestAccessCallback_7_9(REQUEST_ACCESS_STORAGE)
+            t_request_access = RequestAccessCallback_P2_7_9(REQUEST_ACCESS_STORAGE)
             # 発行のコールバックをセット
             # スレッドの重複はクラスが見つけられない場合有り
             # https://issuehint.com/issue/kivy/python-for-android/2533
@@ -623,23 +796,36 @@ def request_access_storage_7_9():
 
     return t_ok, t_uri
 
-class RequestAccessActiviry_10_11():
+class RequestAccessActiviry_P2_10_11():
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     #            コンストラクタ
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    def __init__(self, **kwargs):
+    def __init__(self, p_necessary_path_in_adrd_data,   # android/data 配下のアクセスが必要な場合
+                                                        # 例えば 'jp.co.wasabiapps.bestbowling'
+                       **kwargs):
         self.got_permission = False
 
         EXTERNAL_STORAGE_PROVIDER_AUTHORITY = "com.android.externalstorage.documents"
         ## ANDROID_DOCID = "primary:Android"
         ANDROID_DOCID = "primary:Android/data"
+        """
+        self.android_uri = DocumentsContract.buildDocumentUri(
+                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, ANDROID_DOCID)
+        self.android_tree_uri = DocumentsContract.buildTreeDocumentUri(
+                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, ANDROID_DOCID)
+        """
+        if p_necessary_path_in_adrd_data == '':
+            t_doc_id = ANDROID_DOCID
+        else:
+            t_doc_id = ANDROID_DOCID + '/' + p_necessary_path_in_adrd_data
+
+        debug_log('request access -> ' + t_doc_id)
 
         self.android_uri = DocumentsContract.buildDocumentUri(
-                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, ANDROID_DOCID
-            )
+                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, t_doc_id)
+
         self.android_tree_uri = DocumentsContract.buildTreeDocumentUri(
-                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, ANDROID_DOCID
-            )
+                EXTERNAL_STORAGE_PROVIDER_AUTHORITY, t_doc_id)
         return
 
     #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -655,10 +841,13 @@ class RequestAccessActiviry_10_11():
             print('permission loop')
             print(t_uri.getPath())
             ## """
+            """ #230214
             t_ret = (t_uri.equals(self.android_tree_uri) and
                                                 t_uri_permission.isReadPermission and
-                                                t_uri_permission.isWritePermission
-                        )
+                                                t_uri_permission.isWritePermission)
+            """
+            t_ret = (t_uri_permission.isReadPermission)
+            # #230214
             if t_ret:
             # 見つかった
                 break
@@ -687,7 +876,7 @@ class RequestAccessActiviry_10_11():
             ## t_intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, self.android_uri)
 
             # コールバッククラスインスタンス作成
-            t_request_access = RequestAccessCallback_10_11(REQUEST_ACCESS_STORAGE)
+            t_request_access = RequestAccessCallback_P2_10_11(REQUEST_ACCESS_STORAGE)
             # 発行のコールバックをセット
             activity.bind(on_activity_result = t_request_access.on_activity_result)
             # intent 発行
@@ -728,11 +917,13 @@ class RequestAccessActiviry_10_11():
         pass
 
 # ストレージアクセス許可を得る
-# Android 10～11
-def request_access_storage_10_11():
-                                        # True:許可
+# phase2 Android 10～11
+def request_access_storage_p2_10_11(p_necessary_path_in_adrd_data):
+                                    # android/data 配下のアクセスが必要な場合
+                                    # 例えば 'jp.co.wasabiapps.bestbowling'
+                                # True:許可
 
-    t_request = RequestAccessActiviry_10_11()
+    t_request = RequestAccessActiviry_P2_10_11(p_necessary_path_in_adrd_data)
     t_request.execute()    ## open_directory()
     return t_request.got_permission
 
@@ -747,8 +938,9 @@ class AndroidVersion():
         if not is_android():
             raise Exception(ROUTIN + 'platform is not andoroid!')
 
-        self.is_7_9   = False
-        self.is_10_11 = False
+        self.is_7_9       = False
+        self.more_than_10 = False
+        self.more_than_11 = False
 
         if VERSION.SDK_INT < ANDROID_7:
             raise Exception(ROUTIN + 'not supported! (under)')
@@ -757,10 +949,16 @@ class AndroidVersion():
 
         if VERSION.SDK_INT >= ANDROID_10:
         # Android 10 以上
-            self.is_10_11 = True
-        else:
-        # Android 10 未満
-            self.is_7_9   = True
+            self.more_than_10 = True
+
+        if VERSION.SDK_INT >= ANDROID_11:
+        # Android 11 以上
+            self.more_than_11 = True
+
+        if ((VERSION.SDK_INT <  ANDROID_10) and
+            (VERSION.SDK_INT >= ANDROID_7 )     ):
+        # Android 7～9
+            self.is_7_9 = True
         return
 
 # beep (windows)
